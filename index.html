@@ -1,0 +1,687 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Morrow Cyber Admin Panel v5.0 (UI Demo)</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #050714;
+            --card-bg: rgba(13, 18, 36, 0.75);
+            --primary-neon: #00ffcc;
+            --secondary-neon: #ff0055;
+            --purple-neon: #9d00ff;
+            --text-main: #f1f5f9;
+            --text-muted: #64748b;
+            --glass-border: rgba(0, 255, 204, 0.25);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Rajdhani', sans-serif;
+            user-select: none;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            background-image: 
+                radial-gradient(circle at 15% 20%, rgba(157, 0, 255, 0.18) 0%, transparent 45%),
+                radial-gradient(circle at 85% 80%, rgba(0, 255, 204, 0.15) 0%, transparent 45%);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow-x: hidden;
+        }
+
+        /* Ambient Cyber Grid Lines */
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+                        linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+            background-size: 32px 32px;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* LOGIN SCREEN OVERLAY */
+        .login-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(3, 5, 12, 0.95);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            z-index: 9999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 0.4s ease, visibility 0.4s ease;
+        }
+
+        .login-card {
+            background: var(--card-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 40px 30px;
+            width: 90%;
+            max-width: 420px;
+            box-shadow: 0 0 50px rgba(0, 255, 204, 0.15),
+                        inset 0 0 15px rgba(0, 255, 204, 0.05);
+            text-align: center;
+            position: relative;
+        }
+
+        .login-card h2 {
+            font-family: 'Orbitron', sans-serif;
+            color: var(--primary-neon);
+            font-size: 1.8rem;
+            margin-bottom: 6px;
+            letter-spacing: 2px;
+            text-shadow: 0 0 12px rgba(0, 255, 204, 0.5);
+        }
+
+        .login-card p {
+            color: var(--text-muted);
+            margin-bottom: 25px;
+            font-size: 0.9rem;
+        }
+
+        .input-group {
+            margin-bottom: 18px;
+            text-align: left;
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 0.8rem;
+            color: var(--primary-neon);
+            margin-bottom: 6px;
+            letter-spacing: 1px;
+            font-weight: 700;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 12px 16px;
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 10px;
+            color: #fff;
+            font-size: 1rem;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .input-group input:focus {
+            border-color: var(--primary-neon);
+            box-shadow: 0 0 15px rgba(0, 255, 204, 0.3);
+        }
+
+        .btn-action {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, var(--primary-neon), var(--purple-neon));
+            border: none;
+            border-radius: 10px;
+            color: #000;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 700;
+            font-size: 0.95rem;
+            cursor: pointer;
+            letter-spacing: 1.5px;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 20px rgba(0, 255, 204, 0.3);
+        }
+
+        .btn-action:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 30px rgba(0, 255, 204, 0.6);
+        }
+
+        .error-msg {
+            color: var(--secondary-neon);
+            font-size: 0.85rem;
+            margin-top: 15px;
+            display: none;
+            font-weight: 600;
+        }
+
+        /* MAIN DASHBOARD */
+        .dashboard-container {
+            width: 96%;
+            max-width: 1400px;
+            margin: 20px auto;
+            position: relative;
+            z-index: 10;
+            display: none;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        header {
+            background: var(--card-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 18px 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            backdrop-filter: blur(15px);
+        }
+
+        .brand-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-icon {
+            width: 44px;
+            height: 44px;
+            background: linear-gradient(135deg, var(--primary-neon), var(--purple-neon));
+            border-radius: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 900;
+            color: #000;
+            font-size: 1.4rem;
+            box-shadow: 0 0 15px rgba(0, 255, 204, 0.4);
+        }
+
+        .brand-text h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.3rem;
+            color: #fff;
+            letter-spacing: 1px;
+        }
+
+        .brand-text span {
+            font-size: 0.78rem;
+            color: var(--primary-neon);
+            letter-spacing: 1px;
+        }
+
+        .user-status {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .badge-online {
+            background: rgba(0, 255, 204, 0.1);
+            border: 1px solid var(--primary-neon);
+            color: var(--primary-neon);
+            padding: 6px 14px;
+            border-radius: 50px;
+            font-size: 0.82rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+        }
+
+        .dot {
+            width: 8px;
+            height: 8px;
+            background: var(--primary-neon);
+            border-radius: 50%;
+            box-shadow: 0 0 8px var(--primary-neon);
+            animation: pulseDot 1.5s infinite;
+        }
+
+        @keyframes pulseDot {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        .btn-logout {
+            background: rgba(255, 0, 85, 0.15);
+            border: 1px solid var(--secondary-neon);
+            color: var(--secondary-neon);
+            padding: 8px 18px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 700;
+            transition: all 0.3s ease;
+        }
+
+        .btn-logout:hover {
+            background: var(--secondary-neon);
+            color: #fff;
+            box-shadow: 0 0 15px rgba(255, 0, 85, 0.5);
+        }
+
+        /* GRID LAYOUT */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 2.2fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 1024px) {
+            .dashboard-grid { grid-template-columns: 1fr; }
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 22px;
+            backdrop-filter: blur(15px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+        }
+
+        .card-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1rem;
+            color: var(--primary-neon);
+            margin-bottom: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            padding-bottom: 10px;
+            letter-spacing: 1px;
+        }
+
+        /* 20 TOGGLE FEATURES GRID */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+            gap: 12px;
+        }
+
+        .feature-item {
+            background: rgba(0, 0, 0, 0.45);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 10px;
+            padding: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.25s ease;
+        }
+
+        .feature-item:hover {
+            border-color: rgba(0, 255, 204, 0.3);
+            background: rgba(0, 255, 204, 0.03);
+        }
+
+        .feature-info h4 {
+            font-size: 0.88rem;
+            color: #fff;
+            margin-bottom: 2px;
+        }
+
+        .feature-info p {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+        }
+
+        /* CUSTOM TOGGLE SWITCH */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 44px;
+            height: 22px;
+            flex-shrink: 0;
+        }
+
+        .switch input { opacity: 0; width: 0; height: 0; }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: rgba(255, 255, 255, 0.1);
+            transition: .3s;
+            border-radius: 22px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 14px;
+            width: 14px;
+            left: 3px;
+            bottom: 3px;
+            background-color: #fff;
+            transition: .3s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: var(--primary-neon);
+            border-color: var(--primary-neon);
+            box-shadow: 0 0 10px rgba(0, 255, 204, 0.5);
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(22px);
+            background-color: #000;
+        }
+
+        /* RIGHT CONTROLS & TERMINAL */
+        .control-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .input-box {
+            width: 100%;
+            padding: 12px;
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 8px;
+            color: #fff;
+            outline: none;
+            font-size: 0.9rem;
+        }
+
+        .input-box:focus {
+            border-color: var(--primary-neon);
+        }
+
+        .active-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            min-height: 45px;
+            align-content: flex-start;
+        }
+
+        .active-chip {
+            background: rgba(0, 255, 204, 0.15);
+            border: 1px solid var(--primary-neon);
+            color: var(--primary-neon);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            animation: popIn 0.25s ease;
+        }
+
+        @keyframes popIn {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .console-box {
+            background: rgba(0, 0, 0, 0.85);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 12px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.8rem;
+            height: 180px;
+            overflow-y: auto;
+            color: #00ffcc;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .progress-bar-container {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            overflow: hidden;
+            display: none;
+            margin-top: 8px;
+        }
+
+        .progress-bar {
+            width: 0%;
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary-neon), var(--purple-neon));
+            transition: width 0.15s ease;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- LOGIN SCREEN -->
+    <div class="login-overlay" id="loginOverlay">
+        <div class="login-card">
+            <h2>MORROW ADMIN</h2>
+            <p>System Controller UI Demo</p>
+            
+            <div class="input-group">
+                <label>ADMIN USERNAME</label>
+                <input type="text" id="username" value="adminbiswa" autocomplete="off">
+            </div>
+
+            <div class="input-group">
+                <label>PASSWORD</label>
+                <input type="password" id="password" value="709951" placeholder="Enter Password">
+            </div>
+
+            <button class="btn-action" onclick="attemptLogin()">LOGIN TO PANEL</button>
+            <div class="error-msg" id="errorMsg">❌ Incorrect Username or Password!</div>
+        </div>
+    </div>
+
+    <!-- MAIN DASHBOARD -->
+    <div class="dashboard-container" id="dashboard">
+        
+        <header>
+            <div class="brand-logo">
+                <div class="logo-icon">M</div>
+                <div class="brand-text">
+                    <h1>MORROW CONTROL PANEL</h1>
+                    <span>SYSTEM ADMINISTRATION UI DEMO v5.0</span>
+                </div>
+            </div>
+
+            <div class="user-status">
+                <div class="badge-online"><div class="dot"></div> UI ACTIVE</div>
+                <button class="btn-logout" onclick="logout()">LOGOUT</button>
+            </div>
+        </header>
+
+        <div class="dashboard-grid">
+            
+            <!-- LEFT SECTION -->
+            <div style="display: flex; flex-direction: column; gap: 20px;">
+                
+                <!-- 20 FEATURE TOGGLES -->
+                <div class="card">
+                    <div class="card-title">
+                        <span>20 SYSTEM CONTROL MODULES</span>
+                        <span style="font-size: 0.8rem; color: var(--text-muted);" id="activeCount">0 Active</span>
+                    </div>
+
+                    <div class="features-grid" id="featuresGrid"></div>
+                </div>
+
+                <!-- CONSOLE TERMINAL -->
+                <div class="card">
+                    <div class="card-title">REALTIME EXECUTION TERMINAL</div>
+                    <div class="console-box" id="consoleBox">
+                        <div style="color: var(--purple-neon);">[SYS] Morrow Cyber Engine Initialized.</div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- RIGHT SECTION -->
+            <div style="display: flex; flex-direction: column; gap: 20px;">
+                
+                <!-- COMMAND & UPDATE PANEL -->
+                <div class="card">
+                    <div class="card-title">COMMAND & UPDATE CONTROLLER</div>
+                    <div class="control-panel">
+                        <label style="font-size: 0.8rem; color: var(--text-muted);">SEND CUSTOM TERMINAL COMMAND</label>
+                        <input type="text" class="input-box" id="customCmd" placeholder="e.g., /status-check" onkeypress="handleCmdKey(event)">
+                        <button class="btn-action" onclick="sendCommand()">SEND COMMAND</button>
+
+                        <label style="font-size: 0.8rem; color: var(--text-muted); margin-top: 8px;">EXECUTE SYSTEM UPDATE DEMO</label>
+                        <button class="btn-action" style="background: linear-gradient(135deg, var(--purple-neon), var(--secondary-neon));" onclick="triggerUpdate()">EXECUTE UPDATE</button>
+
+                        <div class="progress-bar-container" id="progContainer">
+                            <div class="progress-bar" id="progBar"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ACTIVE MODULES DISPLAY -->
+                <div class="card">
+                    <div class="card-title">ACTIVE MODULES SHOWCASE</div>
+                    <div class="active-list" id="activeList"></div>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        // 20 Demo Features List
+        const features = [
+            { id: "f1", name: "FPS Booster", desc: "Max Frame Rate Lock" },
+            { id: "f2", name: "Ping Stabilizer", desc: "Latency Optimization" },
+            { id: "f3", name: "Memory Cleaner", desc: "Auto RAM Flush" },
+            { id: "f4", name: "HD Shader Mode", desc: "Enhanced Visuals" },
+            { id: "f5", name: "Audio Equalizer", desc: "Footstep Sound Boost" },
+            { id: "f6", name: "Lag Reducer", desc: "Packet Stream Sync" },
+            { id: "f7", name: "Anti-Aliasing FX", desc: "Smooth Edges" },
+            { id: "f8", name: "Network Shield", desc: "DNS Protection" },
+            { id: "f9", name: "Thermal Guard", desc: "CPU Temp Monitor" },
+            { id: "f10", name: "G-Sync Enforcer", desc: "Display Refresh Sync" },
+            { id: "f11", name: "Crosshair Overlay", desc: "Custom Aim Indicator" },
+            { id: "f12", name: "Touch Response", desc: "Low Input Latency" },
+            { id: "f13", name: "Battery Saver", desc: "Background Limiter" },
+            { id: "f14", name: "Color Vibrance", desc: "Saturation Boost" },
+            { id: "f15", name: "Auto Backup UI", desc: "Cloud Config Sync" },
+            { id: "f16", name: "Dark Mode Lock", desc: "Eye Protection FX" },
+            { id: "f17", name: "Zero Delay Touch", desc: "Touch Sampling Sync" },
+            { id: "f18", name: "Notification Mute", desc: "Do Not Disturb" },
+            { id: "f19", name: "GPU Turbo Boost", desc: "Clock Speed Lock" },
+            { id: "f20", name: "Security Audit", desc: "Local Integrity Check" }
+        ];
+
+        const activeModules = new Set();
+
+        // Generate 20 Features in Grid
+        function buildFeatures() {
+            const grid = document.getElementById('featuresGrid');
+            grid.innerHTML = features.map(f => `
+                <div class="feature-item">
+                    <div class="feature-info">
+                        <h4>${f.name}</h4>
+                        <p>${f.desc}</p>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" onchange="toggleFeature('${f.name}', this)">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            `).join('');
+        }
+
+        // Login System
+        function attemptLogin() {
+            const user = document.getElementById('username').value.trim().toLowerCase();
+            const pass = document.getElementById('password').value.trim();
+            const err = document.getElementById('errorMsg');
+
+            if (user === "adminbiswa" && pass === "709951") {
+                document.getElementById('loginOverlay').style.opacity = '0';
+                setTimeout(() => {
+                    document.getElementById('loginOverlay').style.display = 'none';
+                    document.getElementById('dashboard').style.display = 'flex';
+                    buildFeatures();
+                    logConsole("Admin biswa authenticated successfully.", "OK");
+                }, 400);
+            } else {
+                err.style.display = 'block';
+            }
+        }
+
+        // Listen for Enter key on login input
+        document.getElementById('password').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') attemptLogin();
+        });
+
+        function logout() { 
+            location.reload(); 
+        }
+
+        // Toggle Switch Handler
+        function toggleFeature(name, elem) {
+            const list = document.getElementById('activeList');
+            if (elem.checked) {
+                activeModules.add(name);
+                logConsole(`ENABLED: [${name}]`, "OK");
+            } else {
+                activeModules.delete(name);
+                logConsole(`DISABLED: [${name}]`, "WARN");
+            }
+
+            document.getElementById('activeCount').innerText = `${activeModules.size} Active`;
+            list.innerHTML = Array.from(activeModules).map(m => `<div class="active-chip">⚡ ${m}</div>`).join('');
+        }
+
+        // Send Command Handler
+        function sendCommand() {
+            const cmdInput = document.getElementById('customCmd');
+            const val = cmdInput.value.trim();
+            if (val) {
+                logConsole(`EXEC: ${val}`, "CMD");
+                cmdInput.value = '';
+            }
+        }
+
+        function handleCmdKey(e) {
+            if (e.key === 'Enter') sendCommand();
+        }
+
+        // Update Animation Handler
+        function triggerUpdate() {
+            const container = document.getElementById('progContainer');
+            const bar = document.getElementById('progBar');
+            container.style.display = 'block';
+            bar.style.width = '0%';
+            logConsole("Initializing System Update Sequence...", "SYS");
+
+            let w = 0;
+            const timer = setInterval(() => {
+                w += 20;
+                bar.style.width = w + '%';
+                if (w >= 100) {
+                    clearInterval(timer);
+                    logConsole("System Update Completed Successfully!", "OK");
+                    alert("✅ SYSTEM UPDATE COMPLETE!");
+                    setTimeout(() => container.style.display = 'none', 800);
+                }
+            }, 150);
+        }
+
+        // Terminal Log Function
+        function logConsole(msg, tag = "INFO") {
+            const box = document.getElementById('consoleBox');
+            const entry = document.createElement('div');
+            const time = new Date().toLocaleTimeString();
+            entry.innerText = `[${time}] [${tag}] ${msg}`;
+            box.appendChild(entry);
+            box.scrollTop = box.scrollHeight;
+        }
+    </script>
+</body>
+</html>
+```
